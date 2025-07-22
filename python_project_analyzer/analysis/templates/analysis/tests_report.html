@@ -1,0 +1,47 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}Tests générés - CodeClean{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <div class="text-center mb-4">
+        <h2 class="text-primary"> Tests Automatisés Générés</h2>
+        <p class="text-muted">Projet : <strong>{{ project.project_name }}</strong></p>
+    </div>
+
+    <div class="alert alert-info" role="alert">
+        Ces tests ont été générés automatiquement. Vous pouvez :
+        <ul>
+            <li>Les <strong>copier</strong> dans votre environnement de test Python</li>
+            <li>Les <strong>exporter</strong> au format fichier</li>
+            <li>Les <strong>exécuter</strong> avec <code>pytest</code></li>
+        </ul>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Code des tests générés</h5>
+            <button class="btn btn-light btn-sm" onclick="copyToClipboard()">
+                <i class="bi bi-clipboard"></i> Copier
+            </button>
+        </div>
+        <div class="card-body">
+            <pre id="testCodeBlock" class="p-3 bg-light rounded border" style="white-space:pre-wrap;">{{ tests_report }}</pre>
+        </div>
+    </div>
+
+</div>
+
+<!-- Script de copie -->
+<script>
+function copyToClipboard() {
+    const text = document.getElementById("testCodeBlock").innerText;
+    navigator.clipboard.writeText(text).then(function() {
+        alert("Code copié avec succès !");
+    }, function(err) {
+        alert(" Une erreur est survenue lors de la copie.");
+    });
+}
+</script>
+{% endblock %}

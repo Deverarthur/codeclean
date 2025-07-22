@@ -1,0 +1,81 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}Uploader un projet Python - CodeClean{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Uploader un projet Python</h2>
+        <p class="text-muted">Envoyez vos fichiers .py pour analyse de sécurité ou génération de tests automatisés.</p>
+    </div>
+
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label for="id_project_name" class="form-label">Nom du projet</label>
+            <input type="text" name="project_name" maxlength="255" class="form-control" required id="id_project_name">
+        </div>
+
+        <div class="mb-3">
+            <label for="id_files" class="form-label">Fichiers Python (.py)</label>
+            <input type="file" name="files" multiple accept=".py" class="form-control" id="id_files">
+            <div class="form-text">Vous pouvez sélectionner plusieurs fichiers. Seuls les fichiers .py sont acceptés.</div>
+        </div>
+
+        <div id="fileList" class="mb-3"></div>
+
+        <div class="mb-3">
+            <label for="id_action" class="form-label">Action à réaliser</label>
+            <select name="action" class="form-select" id="id_action" required>
+                <option value="analysis">Analyse de code</option>
+                <option value="tests">Génération de tests</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Uploader et Analyser</button>
+    </form>
+</div>
+
+<script>
+const fileInput = document.getElementById("id_files");
+const fileListDisplay = document.getElementById("fileList");
+let selectedFiles = [];
+
+fileInput.addEventListener("change", function (e) {
+    for (let file of e.target.files) {
+        if (!file.name.endsWith(".py")) {
+            alert("Seuls les fichiers .py sont acceptés !");
+            continue;
+        }
+        if (!selectedFiles.some(f => f.name === file.name)) {
+            selectedFiles.push(file);
+        }
+    }
+    renderFileList();
+});
+
+function renderFileList() {
+    fileListDisplay.innerHTML = "";
+    selectedFiles.forEach((file, index) => {
+        const fileItem = document.createElement("div");
+        fileItem.className = "d-flex justify-content-between align-items-center p-2 border mb-2 bg-light";
+        fileItem.innerHTML = `
+            <span>${file.name}</span>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removeFile(${index})">Supprimer</button>
+        `;
+        fileListDisplay.appendChild(fileItem);
+    });
+
+
+    const dataTransfer = new DataTransfer();
+    selectedFiles.forEach(file => dataTransfer.items.add(file));
+    fileInput.files = dataTransfer.files;
+}
+
+function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    renderFileList();
+}
+</script>
+{% endblock %}

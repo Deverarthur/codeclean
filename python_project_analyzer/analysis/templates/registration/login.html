@@ -1,0 +1,41 @@
+{% extends "analysis/base.html" %}
+{% block title %}Connexion - CodeClean{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header text-white bg-primary text-center">
+                    <h4>Connexion à CodeClean</h4>
+                </div>
+                <div class="card-body">
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Nom d'utilisateur ou mot de passe incorrect.
+                    </div>
+                    {% endif %}
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">Nom d'utilisateur</label>
+                            <input type="text" name="username" class="form-control" id="id_username" required autofocus>
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">Mot de passe</label>
+                            <input type="password" name="password" class="form-control" id="id_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Se connecter</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center text-muted">
+                    <small>Vous avez oublié votre mot de passe ? <a href="{% url 'analysis:register' %}">Créer un
+                            compte</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

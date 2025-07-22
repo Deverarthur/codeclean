@@ -1,0 +1,161 @@
+{% extends "analysis/base.html" %}
+
+{% block title %}Rapport d'analyse - CodeClean{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    <div class="text-center mb-4">
+        <h2 class="text-primary">Rapport d'analyse</h2>
+        <p class="text-muted">Projet <strong>{{ project.project_name }}</strong>, analysé le {{ project.uploaded_at|date:"d/m/Y H:i" }}</p>
+    </div>
+
+    <!-- Métriques Globales -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Métriques globales</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-group">
+                        <li class="list-group-item"><i class="bi bi-file-earmark-code"></i> Fichiers analysés : <strong>{{ report.files_analyzed }}</strong></li>
+                        <li class="list-group-item"><i class="bi bi-exclamation-triangle"></i> Fichiers avec problèmes : <strong>{{ report.files_with_issues }}</strong></li>
+                        <li class="list-group-item"><i class="bi bi-graph-up"></i> Complexité cyclomatique : <strong>{{ metrics.complexite_cyclomatique }}</strong></li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-group">
+                        <li class="list-group-item"><i class="bi bi-bug"></i> Violations Pylint : <strong>{{ metrics.violations_pylint }}</strong></li>
+                        <li class="list-group-item"><i class="bi bi-shield-lock"></i> Variables sensibles : <strong>{{ metrics.variables_sensibles }}</strong></li>
+                        <li class="list-group-item"><i class="bi bi-shield-exclamation"></i> Injections SQL potentielles : <strong>{{ metrics.injections_sql }}</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détails par fichier -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"> Détails par fichier</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for filepath, issues in report.detailed_report.items %}
+                    <li class="list-group-item {% if issues %}list-group-item-warning{% else %}list-group-item-success{% endif %}">
+                        <strong>{{ filepath }}</strong>
+                        {% if issues %}
+                            <span class="badge bg-danger">{{ issues|length }} problème{{ issues|length|pluralize }}</span>
+                            <ul class="mt-2">
+                                {% for issue in issues %}
+                                    <li>
+                                        <strong>Ligne {{ issue.line }}:</strong>
+                                        [<span class="text-uppercase">{{ issue.type }}</span>] {{ issue.message }}
+                                        {% if issue.recommendation %}
+                                            <div class="text-muted small">
+                                                <em>Recommandation :</em> {{ issue.recommendation }}
+                                            </div>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                             Aucun problème détecté
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Prédiction ML -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5><i class="bi bi-cpu-fill"></i> Prédiction du modèle ML :</h5>
+            <p class="{% if metrics.ml_prediction and 'défaut' in metrics.ml_prediction|lower %}text-danger{% else %}text-success{% endif %}">
+                {{ metrics.ml_prediction }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Recommandations globales -->
+    {% if recommendations %}
+    <div class="card shadow-sm mb-5">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Recommandations Globales</h5>
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                {% for rec in recommendations %}
+                    <li class="list-group-item">
+                        <strong>{{ rec.metric }}</strong> ({{ rec.severity|upper }}) :
+                        {{ rec.recommendation }}
+                        <span class="text-muted small d-block">[Valeur actuelle : {{ rec.value }}]</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommandations personnalisées ou prédéfinies -->
+    {% if report.llm_recommendations %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"> Recommandations avancées</h4>
+        </div>
+        <div class="card-body">
+            <div class="recommendation-markdown">
+                {{ llm_recommendations_html|safe }}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="mb-0">Recommandations prédéfinies</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                {% for rec in report.summary_metrics.recommendations %}
+                    <li class="list-group-item">
+                        <i class="bi bi-check-circle text-success"></i> {{ rec.recommendation }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+
+    {% if report.llm_error %}
+        <div class="alert alert-warning">
+            Erreur lors de la génération des recommandations avancées : {{ report.llm_error }}
+        </div>
+    {% endif %}
+
+</div>
+
+<style>
+    .recommendation-markdown h3 {
+        color: #0d6efd;
+        margin-top: 1rem;
+    }
+    .recommendation-markdown ul {
+        padding-left: 1.2rem;
+    }
+    .recommendation-markdown li {
+        margin-bottom: 0.5rem;
+    }
+    .recommendation-markdown code {
+        background-color: #f0f0f0;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+</style>
+
+{% endblock %}
+
+
